@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loud & Proud Karaoke — Queue</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@700&family=DM+Sans:wght@400;500;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background:
+      radial-gradient(circle at 12% 15%, rgba(255,45,150,0.22), transparent 40%),
+      radial-gradient(circle at 88% 80%, rgba(0,220,255,0.18), transparent 45%),
+      #0c0a18;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .star {
+    position: fixed;
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .wrap {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    padding: 3vh 4vw;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  .title-loud {
+    font-family: 'Anton', sans-serif;
+    font-size: 5.5vw;
+    letter-spacing: 0.02em;
+    color: #5fd9d9;
+    text-shadow: 0 0 30px rgba(95,217,217,0.55);
+    line-height: 1;
+  }
+
+  .title-karaoke {
+    font-family: 'Caveat', cursive;
+    font-size: 4.2vw;
+    color: #f0b94d;
+    transform: rotate(-2deg);
+    margin-top: -1vh;
+    text-shadow: 0 0 20px rgba(240,185,77,0.4);
+  }
+
+  .subtitle {
+    font-size: 1.4vw;
+    color: #b9a9d6;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 1vh;
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3vw;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .now-singing {
+    background: rgba(240,73,143,0.1);
+    border: 2px solid rgba(240,73,143,0.45);
+    border-radius: 24px;
+    padding: 3vh 2.5vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .ns-label {
+    font-family: 'Anton', sans-serif;
+    font-size: 1.6vw;
+    color: #f0498f;
+    letter-spacing: 0.08em;
+    margin-bottom: 2vh;
+  }
+
+  .ns-emoji { font-size: 5vw; margin-bottom: 1.5vh; }
+
+  .ns-song {
+    font-size: 2.4vw;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1vh;
+  }
+
+  .ns-name {
+    font-size: 1.6vw;
+    color: #8ee8e8;
+  }
+
+  .ns-empty {
+    font-size: 1.6vw;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .queue-col {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 2.5vh 2vw;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .queue-label {
+    font-family: 'Anton', sans-serif;
+    font-size: 1.6vw;
+    color: #f0b94d;
+    letter-spacing: 0.06em;
+    margin-bottom: 2vh;
+    flex-shrink: 0;
+  }
+
+  .queue-items {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4vh;
+  }
+
+  .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 1.2vw;
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 1.2vh 1.4vw;
+  }
+
+  .q-num {
+    font-family: 'Anton', sans-serif;
+    font-size: 1.8vw;
+    color: rgba(255,255,255,0.25);
+    width: 2.2vw;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .q-text { flex: 1; min-width: 0; }
+  .q-song { font-size: 1.5vw; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .q-name { font-size: 1.1vw; color: #b9a9d6; margin-top: 0.3vh; }
+
+  .empty-queue {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5vh;
+    color: rgba(255,255,255,0.25);
+    text-align: center;
+  }
+
+  .empty-queue .big { font-size: 4vw; }
+  .empty-queue p { font-size: 1.3vw; }
+
+  .qr-hint {
+    position: fixed;
+    bottom: 2.5vh;
+    right: 3vw;
+    font-size: 1vw;
+    color: rgba(255,255,255,0.3);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<svg class="star" style="top:6%; left:4%; width:3vw;" viewBox="0 0 24 24" fill="none" stroke="#5fd9d9" stroke-width="1.2"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>
+<svg class="star" style="top:10%; right:5%; width:2vw;" viewBox="0 0 24 24" fill="none" stroke="#f0498f" stroke-width="1.2"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>
+<svg class="star" style="bottom:8%; left:6%; width:2.2vw;" viewBox="0 0 24 24" fill="none" stroke="#f0b94d" stroke-width="1.2"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>
+
+<div class="wrap">
+  <div class="header">
+    <div class="title-loud">LOUD &amp; PROUD</div>
+    <div class="title-karaoke">Karaoke</div>
+    <div class="subtitle">After Work Drinks · Song Queue</div>
+  </div>
+
+  <div class="content">
+    <div class="now-singing">
+      <div class="ns-label">NOW SINGING</div>
+      <div id="ns-content">
+        <div class="ns-emoji">🎤</div>
+        <div class="ns-empty">Waiting for the first performer…</div>
+      </div>
+    </div>
+
+    <div class="queue-col">
+      <div class="queue-label">UP NEXT</div>
+      <div class="queue-items" id="queue-items">
+        <div class="empty-queue" id="empty-state">
+          <div class="big">🎶</div>
+          <p>Scan the QR code to<br>add your song!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="qr-hint">Scan the QR code on your table to join the queue</div>
+
+<script>
+  async function loadQueue() {
+    try {
+      const result = await window.storage.get('karaoke-queue', true);
+      return result ? JSON.parse(result.value) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function render() {
+    const all = await loadQueue();
+    const queued = all.filter(i => i.status !== 'done');
+
+    // First item = now singing, rest = up next
+    const current = queued[0];
+    const upNext = queued.slice(1, 7); // show up to 6 ahead
+
+    const nsContent = document.getElementById('ns-content');
+    if (current) {
+      nsContent.innerHTML = `
+        <div class="ns-emoji">🎤</div>
+        <div class="ns-song">${esc(current.song)}</div>
+        <div class="ns-name">${esc(current.name)}</div>`;
+    } else {
+      nsContent.innerHTML = `
+        <div class="ns-emoji">🎤</div>
+        <div class="ns-empty">Waiting for the first performer…</div>`;
+    }
+
+    const itemsEl = document.getElementById('queue-items');
+    const emptyEl = document.getElementById('empty-state');
+
+    itemsEl.querySelectorAll('.queue-item').forEach(e => e.remove());
+
+    if (upNext.length === 0) {
+      emptyEl.style.display = 'flex';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    upNext.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'queue-item';
+      div.innerHTML = `
+        <div class="q-num">${i + 1}</div>
+        <div class="q-text">
+          <div class="q-song">${esc(item.song)}</div>
+          <div class="q-name">${esc(item.name)}</div>
+        </div>`;
+      itemsEl.appendChild(div);
+    });
+  }
+
+  render();
+  setInterval(render, 4000);
+</script>
+</body>
+</html>
